@@ -1,0 +1,14 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+### User 회원가입
+POST /signup
+Host: localhost:8080
+Content-Type: application/json
+
+{
+  "username": "Test1",
+  "password": "Test1!",
+  "nickname": "TestUser"
+}
