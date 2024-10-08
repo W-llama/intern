@@ -3,12 +3,28 @@ GET https://examples.http-client.intellij.net/get
     ?generated-in=IntelliJ IDEA
 
 ### User 회원가입
-POST /signup
+POST /api/signup
 Host: localhost:8080
 Content-Type: application/json
 
 {
   "username": "Test1",
-  "password": "Test1!",
+  "password": "TestUser1!",
   "nickname": "TestUser"
 }
+
+### User 로그인
+POST /api/login
+Host: localhost:8080
+Content-Type: application/json
+
+{
+  "username": "Test1",
+  "password": "TestUser1!"
+}
+
+> {%
+    client.global.set("accessToken", response.headers.valueOf("Authorization"))
+    client.global.set("refreshToken", response.headers.valueOf("RefreshToken"))
+%}
+
