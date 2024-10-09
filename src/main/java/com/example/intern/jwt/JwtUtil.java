@@ -12,14 +12,13 @@ import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 
-
 @Slf4j(topic = "JwtUtil")
 @RequiredArgsConstructor
 public class JwtUtil {
     public static final Long ACCESS_TOKEN_EXPIRATION = 60 * 60 * 1000L;
     public static final Long REFRESH_TOKEN_EXPIRATION = 24 * 60 * 60 * 1000L;
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
+    public static final String BEARER_PREFIX = "Bearer ";
 
     private static final Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(System.getenv("JWT_SECRET_KEY")));
     private static final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
@@ -39,11 +38,14 @@ public class JwtUtil {
     public static String getJwtTokenFromHeader(HttpServletRequest request) {
 
         String bearerToken = request.getHeader(JwtUtil.AUTHORIZATION_HEADER);
+        return substringJwtToken(bearerToken);
+    }
 
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
+    public static String substringJwtToken(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return token.substring(7);
         }
-        return null;
+        return token;
     }
 
     public static TokenError validateToken(String token) {

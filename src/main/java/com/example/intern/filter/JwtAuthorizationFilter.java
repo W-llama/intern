@@ -46,8 +46,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else if (tokenError == TokenError.EXPRIED) {
+                    // 만료된 토큰 처리 (새로운 액세스 토큰 생성)
+                    updateAccessToken(response, token);
+                    return; // 새로운 토큰이 생성되었으므로 필터 체인을 종료
                 } else {
                     handleTokenError(response, token);
+                    return;
                 }
             } catch (Exception e) {
                 log.error("JWT validation failed: {}", e.getMessage());
@@ -75,33 +80,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private void handleTokenError(HttpServletResponse response, String token) throws IOException {
-        switch (JwtUtil.validateToken(token)) {
-            case EXPRIED:
-                updateAccessToken(response, token);
-                break;
-            default:
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("text/plain;charset=UTF-8");
-                response.getWriter().write("유효하지 않은 토큰입니다.");
-                break;
-        }
-    }
-
-    private void checkTokenzAndErrorHanding(HttpServletResponse response, String token) throws IOException {
-        switch (JwtUtil.validateToken(token)) {
-            case VALID:
-                break;
-            case EXPRIED:
-                updateAccessToken(response, token);
-                return;
-            default:
-                response.setStatus(401);
-                response.setContentType("text/plain;charset=UTF-8");
-                response.getWriter().write("유효하지 않은 토큰입니다.");
-                return;
-        }
-
-        checkBlacklist(token);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().write("유효하지 않은 토큰입니다.");
     }
 
     private void updateAccessToken(HttpServletResponse response, String token) throws IOException {
@@ -110,28 +91,18 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
 
-        String refresh = user.getRefreshToken().substring(7);
+        String refresh = user.getRefreshToken().substring(7); // Bearer 제거
         if (TokenError.VALID == JwtUtil.validateToken(refresh)) {
+            // 새 액세스 토큰 생성
             String newToken = JwtUtil.createToken(user.getUsername(), JwtUtil.ACCESS_TOKEN_EXPIRATION);
-            response.addHeader(JwtUtil.AUTHORIZATION_HEADER, newToken); // 새로운 액세스 토큰을 응답 헤더에 추가
+            // 헤더에 새 토큰 추가 (Bearer 포함)
+            response.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.BEARER_PREFIX + newToken);
         } else if (TokenError.EXPRIED == JwtUtil.validateToken(refresh)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("text/plain;charset=UTF-8");
             response.getWriter().write("refresh 토큰이 만료되었습니다.");
         } else {
             throw new RuntimeException("refresh token이 유효하지 않습니다.");
-        }
-    }
-
-    private void checkBlacklist(String token) {
-        String username = JwtUtil.getUserInfoFromToken(token).getSubject();
-        User user = userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException("해당 유저는 없습니다.")
-        );
-
-
-        if (Objects.isNull(user.getRefreshToken())) {
-            throw new RuntimeException("무효한 토큰입니다.");
         }
     }
 }

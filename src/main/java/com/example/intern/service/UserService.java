@@ -56,12 +56,12 @@ public class UserService {
         }
 
         String token = JwtUtil.createToken(user.getUsername(), JwtUtil.ACCESS_TOKEN_EXPIRATION);
+        String substringJwtToken = JwtUtil.substringJwtToken(token);
         //String refreshToken = JwtUtil.createToken(user.getUsername(), JwtUtil.REFRESH_TOKEN_EXPIRATION);
-
         //user.updateRefresh(refreshToken);
         userRepository.save(user);
 
-        return new LoginResponseDto(token);
+        return new LoginResponseDto(substringJwtToken);
     }
 
     public String logout(String username) {
