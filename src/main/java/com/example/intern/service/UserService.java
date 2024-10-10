@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Transactional
+
 public class UserService {
 
 
@@ -44,6 +45,7 @@ public class UserService {
                 .nickname(requestDto.getNickname())
                 .role(UserRole.ROLE_USER)
                 .build();
+
     }
 
     public LoginResponseDto login(LoginRequestDto requestDto) {
@@ -55,7 +57,7 @@ public class UserService {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String token = JwtUtil.createToken(user.getUsername(), JwtUtil.ACCESS_TOKEN_EXPIRATION);
+        String token = JwtUtil.createToken(user.getUsername(), user.getRole(),JwtUtil.ACCESS_TOKEN_EXPIRATION);
         String substringJwtToken = JwtUtil.substringJwtToken(token);
         //String refreshToken = JwtUtil.createToken(user.getUsername(), JwtUtil.REFRESH_TOKEN_EXPIRATION);
         //user.updateRefresh(refreshToken);

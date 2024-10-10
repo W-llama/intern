@@ -47,9 +47,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else if (tokenError == TokenError.EXPRIED) {
-                    // 만료된 토큰 처리 (새로운 액세스 토큰 생성)
                     updateAccessToken(response, token);
-                    return; // 새로운 토큰이 생성되었으므로 필터 체인을 종료
+                    return;
                 } else {
                     handleTokenError(response, token);
                     return;
@@ -66,19 +65,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    public void setAuthentication(String username) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        Authentication authentication = createAuthentication(username);
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-    }
-
-    private Authentication createAuthentication(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow();
-        UserDetailsImpl userDetailsImpl = new UserDetailsImpl(user);
-        return new UsernamePasswordAuthenticationToken(userDetailsImpl, null, user.getAuthorities());
-    }
-
     private void handleTokenError(HttpServletResponse response, String token) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("text/plain;charset=UTF-8");
@@ -91,10 +77,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 () -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다.")
         );
 
-        String refresh = user.getRefreshToken().substring(7); // Bearer 제거
+        String refresh = user.getRefreshToken().substring(7);
+
         if (TokenError.VALID == JwtUtil.validateToken(refresh)) {
             // 새 액세스 토큰 생성
-            String newToken = JwtUtil.createToken(user.getUsername(), JwtUtil.ACCESS_TOKEN_EXPIRATION);
+            String newToken = JwtUtil.createToken(user.getUsername(), user.getRole(),JwtUtil.ACCESS_TOKEN_EXPIRATION);
             // 헤더에 새 토큰 추가 (Bearer 포함)
             response.addHeader(JwtUtil.AUTHORIZATION_HEADER, JwtUtil.BEARER_PREFIX + newToken);
         } else if (TokenError.EXPRIED == JwtUtil.validateToken(refresh)) {
