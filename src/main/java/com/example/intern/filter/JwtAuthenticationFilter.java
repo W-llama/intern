@@ -47,10 +47,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException {
-        String username = ((UserDetails) authResult.getPrincipal()).getUsername();
+        UserDetails userDetails = (UserDetails) authResult.getPrincipal();
+        String username = userDetails.getUsername();
 
-        String token = JwtUtil.createToken(username, JwtUtil.ACCESS_TOKEN_EXPIRATION);
-        String refresh = JwtUtil.createToken(username, JwtUtil.REFRESH_TOKEN_EXPIRATION);
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다.")
+        );
+
+        String token = JwtUtil.createToken(username, user.getRole(),JwtUtil.ACCESS_TOKEN_EXPIRATION);
+        String refresh = JwtUtil.createToken(username, user.getRole(),JwtUtil.REFRESH_TOKEN_EXPIRATION);
 
         saveRefreshToken(username, refresh);
 
@@ -67,7 +72,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private void saveRefreshToken(String username, String refresh) {
         User user = userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException("not found user")
+                () -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다.")
         );
         user.updateRefresh(refresh);
         userRepository.save(user);

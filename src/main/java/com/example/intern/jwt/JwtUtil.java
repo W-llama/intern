@@ -1,18 +1,20 @@
 package com.example.intern.jwt;
 
 import com.example.intern.entity.TokenError;
+import com.example.intern.entity.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 
 @Slf4j(topic = "JwtUtil")
+@Component
 @RequiredArgsConstructor
 public class JwtUtil {
     public static final Long ACCESS_TOKEN_EXPIRATION = 60 * 60 * 1000L;
@@ -23,12 +25,13 @@ public class JwtUtil {
     private static final Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(System.getenv("JWT_SECRET_KEY")));
     private static final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
-    public static String createToken(String username, long expiration) {
+    public static String createToken(String username, UserRole userRole, long expiration) {
         Date date = new Date();
 
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setSubject(username)
+                        .claim("role", userRole.name())
                         .setExpiration(new Date(date.getTime() + expiration))
                         .setIssuedAt(date)
                         .signWith(key, signatureAlgorithm)
