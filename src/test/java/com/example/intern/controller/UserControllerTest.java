@@ -3,11 +3,9 @@ package com.example.intern.controller;
 import com.example.intern.dto.LoginRequestDto;
 import com.example.intern.dto.LoginResponseDto;
 import com.example.intern.dto.SignUpRequestDto;
-import com.example.intern.entity.User;
 import com.example.intern.entity.UserRole;
 import com.example.intern.jwt.JwtUtil;
 import com.example.intern.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,13 +41,10 @@ class UserControllerTest {
     @InjectMocks
     UserController userController;
 
-    private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         mvc = MockMvcBuilders.standaloneSetup(userController).build();
-        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -58,12 +53,12 @@ class UserControllerTest {
         // given
         SignUpRequestDto requestDto = new SignUpRequestDto("newUser1", "Nickname", "NewPassword!1");
 
-        User user = User.builder()
-                .username(requestDto.getUsername())
-                .password(passwordEncoder.encode(requestDto.getPassword()))
-                .nickname(requestDto.getNickname())
-                .role(UserRole.ROLE_USER)
-                .build();
+//        User user = User.builder()
+//                .username(requestDto.getUsername())
+//                .password(passwordEncoder.encode(requestDto.getPassword()))
+//                .nickname(requestDto.getNickname())
+//                .role(UserRole.ROLE_USER)
+//                .build();
 
         String json = new Gson().toJson(requestDto);
 

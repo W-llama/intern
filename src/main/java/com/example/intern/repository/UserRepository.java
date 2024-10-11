@@ -1,7 +1,6 @@
 package com.example.intern.repository;
 
 import com.example.intern.entity.User;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
