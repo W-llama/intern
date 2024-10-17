@@ -65,5 +65,9 @@ JWT_SECRET_KEY=your_jwt_secret_key
 - DATABASE_URL: 데이터베이스 접속 URL
 - JWT_SECRET_KEY: JWT 토큰 발급에 사용할 시크릿 키
 
+## 5. Swagger UI
+![스크린샷 2024-10-09 122912](https://github.com/user-attachments/assets/90c33045-48fa-488d-88d9-1e293a75517d)
+
+
 
    
